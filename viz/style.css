@@ -1,0 +1,23 @@
+a {
+    border-bottom: 1px solid;
+}
+
+/* Disable bootstrap link underlining */
+a:hover, a:focus {
+    text-decoration: none !important;
+}
+
+.card {
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+.related {
+    margin-left: 1em;
+    border: none;
+}
+
+.related .relevance {
+    vertical-align: top;
+    padding-right: 0.5em;
+}

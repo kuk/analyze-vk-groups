@@ -401,7 +401,14 @@ def reduce_edges(groups, sizes):
         yield target, source, float(intersection) / sizes[target]
 
 
-def build_graph(edges, sizes):
+def prepare_name(name):
+    name = name.lower()
+    words = re.findall(r'(\w+)', name, re.U)
+    name = ' '.join(words)
+    return name
+
+
+def build_graph(edges, sizes, names):
     nodes = set()
     for source, target, weight in edges:
         nodes.add(source)
@@ -409,7 +416,11 @@ def build_graph(edges, sizes):
 
     graph = nx.DiGraph()
     for node in nodes:
-        graph.add_node(node, weight=sizes[node])
+        graph.add_node(
+            node,
+            weight=sizes[node],
+            name=prepare_name(names[node])
+        )
     for source, target, weight in edges:
         graph.add_edge(source, target, weight=weight)
     return graph
@@ -419,7 +430,30 @@ def save_graph(graph, path='graph.gexf'):
     nx.write_gexf(graph, path)
 
 
-if __name__ == '__main__':
-    groups = load_groups_list()
-    slice = groups[(groups.quantity > 5000) & (groups.quantity < 10000)].iloc[::-1]
-    download_members_bulks(slice)
+def build_data(edges, sizes, names, top=1000, cap=10):
+    nodes = defaultdict(Counter)
+    for source, target, weight in edges:
+        nodes[source][target] = weight
+    data = []
+    for source in sorted(nodes, key=sizes.get, reverse=True)[:top]:
+        related = []
+        for target, weight in nodes[source].most_common(cap):
+            related.append({
+                'id': target,
+                'name': names[target],
+                'weight': weight
+            })
+        data.append({
+            'id': source,
+            'name': names[source],
+            'related': related
+        })
+    return data
+
+
+def save_data(data, path='viz/data.json'):
+    # for some reason cjson output can not be parsed in d3
+    import json
+
+    with open(path, 'w') as file:
+        json.dump(data, file)
