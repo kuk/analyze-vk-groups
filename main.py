@@ -457,3 +457,23 @@ def save_data(data, path='viz/data.json'):
 
     with open(path, 'w') as file:
         json.dump(data, file)
+
+
+def show_related(id, edges, names, cap=10, html=False):
+    related = Counter()
+    for source, target, weight in edges:
+        if source == id:
+            related[target] = weight
+    if html:
+        pattern = u'<a href="https://vk.com/club{id}">{name}</a>'
+    else:
+        pattern = u'{name}\thttps://vk.com/club{id}'
+    name = names[id]
+    print pattern.format(id=id, name=name)
+    for target, weight in related.most_common(cap):
+        name = names[target]
+        if html:
+            pattern = u'{weight:0.2f}% <a href="https://vk.com/club{id}">{name}</a>'
+        else:
+            pattern = u'{weight:0.2f}%\t{name}\thttps://vk.com/club{id}'
+        print pattern.format(weight=weight * 100, id=target, name=name)
